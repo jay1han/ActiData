@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5a6605bd-eea5-4606-8698-622c02a68ac1" name="Changes" comment="faster strptime">
+    <list default="true" id="5a6605bd-eea5-4606-8698-622c02a68ac1" name="Changes" comment="simpler command-line options">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/actidata.py" beforeDir="false" afterPath="$PROJECT_DIR$/actidata.py" afterDir="false" />
     </list>
@@ -115,7 +115,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714566731870</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="simpler command-line options">
+      <option name="closed" value="true" />
+      <created>1714567141715</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1714567141715</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -134,6 +142,7 @@
     <MESSAGE value="Exit code" />
     <MESSAGE value="overwrite" />
     <MESSAGE value="faster strptime" />
-    <option name="LAST_COMMIT_MESSAGE" value="faster strptime" />
+    <MESSAGE value="simpler command-line options" />
+    <option name="LAST_COMMIT_MESSAGE" value="simpler command-line options" />
   </component>
 </project>

@@ -7,25 +7,28 @@ STRFTIME2 = "%Y/%m/%d %H:%M:%S.%f"
 
 parser = argparse.ArgumentParser(
     prog="ActiData",
-    description="Analyze Actimetre data"
+    description="Analyze Actimetre data file, fix corrupted entries"
 )
 parser.add_argument('-i', dest='input',
-                    help="Input file. Will use stdin if absent")
+                    help="Input file. If absent, use stdin, " +
+                    "but it's much slower, so please use this option.")
 parser.add_argument('-o', dest='output',
-                    help="Output file. Will use stdout if absent")
+                    help="Output file. If absent, use stdout, " +
+                    "but it's much slower, so please use this option.")
 parser.add_argument('-c', dest='check_only', action='store_true',
                     help="Only check, no output")
 parser.add_argument('-w', dest='rewrite', action='store_true',
-                    help="Rewrite input file. Meaningless if stdin is used")
+                    help="Rewrite output onto input file. Meaningless if stdin is used.")
 parser.add_argument('-a', dest='analyze', action='store_true',
-                    help="Analyze timestamps (slow)")
+                    help="Analyze timestamps. This is slow.")
 parser.add_argument('-d', dest='data_points', default=5,
-                    help="Number of data points (5)")
+                    help="Number of data points per sample (%(default)s)")
 parser.add_argument('-s', dest='sampling_rate', default=1000,
-                    help="Sampling rate in microseconds (1000)")
+                    help="Sampling rate in microseconds (%(default)s)")
 args = parser.parse_args()
 cycle_usec = args.sampling_rate
-second = timedelta(seconds=1)
+sampling_rate = timedelta(microseconds=cycle_usec)
+one_second = timedelta(seconds=1)
 
 input = sys.stdin
 output = sys.stdout
@@ -90,8 +93,8 @@ for line in input:
                 microsecond = int(datetimestr[20:26])
             )
             if prev_time is not None:
-                if sample_time - prev_time > second:
-                    missing = int((sample_time - prev_time) / timedelta(microseconds=cycle_usec)) - 1
+                if sample_time - prev_time > one_second:
+                    missing = (sample_time - prev_time) // sampling_rate - 1
                     print(f"Line #{input_lines}: missing {missing} measurements" +
                           f" ({missing * cycle_usec / 1_000_000 :.3f}s) at " +
                           prev_time.strftime(STRFTIME2),
