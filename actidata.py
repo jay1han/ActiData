@@ -9,19 +9,19 @@ parser = argparse.ArgumentParser(
     prog="ActiData",
     description="Analyze Actimetre data"
 )
-parser.add_argument('-i', '--input',
+parser.add_argument('-i', dest='input',
                     help="Input file. Will use stdin if absent")
-parser.add_argument('-o', '--output',
+parser.add_argument('-o', dest='output',
                     help="Output file. Will use stdout if absent")
-parser.add_argument('-c', '--check-only', action='store_true',
+parser.add_argument('-c', dest='check_only', action='store_true',
                     help="Only check, no output")
-parser.add_argument('-w', '--rewrite', action='store_true',
+parser.add_argument('-w', dest='rewrite', action='store_true',
                     help="Rewrite input file. Meaningless if stdin is used")
-parser.add_argument('-a', '--analyze', action='store_true',
+parser.add_argument('-a', dest='analyze', action='store_true',
                     help="Analyze timestamps (slow)")
-parser.add_argument('-d', '--data-points', default=5,
+parser.add_argument('-d', dest='data_points', default=5,
                     help="Number of data points (5)")
-parser.add_argument('-s', '--sampling-rate', default=1000,
+parser.add_argument('-s', dest='sampling_rate', default=1000,
                     help="Sampling rate in microseconds (1000)")
 args = parser.parse_args()
 cycle_usec = args.sampling_rate
