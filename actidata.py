@@ -25,7 +25,7 @@ parser.add_argument('-s', '--sampling-rate', default=1000,
                     help="Sampling rate in microseconds (1000)")
 args = parser.parse_args()
 cycle_usec = args.sampling_rate
-sample_rate = timedelta(microseconds=cycle_usec)
+second = timedelta(seconds=1)
 
 input = sys.stdin
 output = sys.stdout
@@ -78,14 +78,25 @@ for line in input:
         output_lines += 1
 
         if args.analyze:
-            sample_time = datetime.strptime(matchdata.group(1), STRPTIME)
+            # hard-code is faster: sample_time = datetime.strptime(matchdata.group(1), STRPTIME)
+            datetimestr = matchdata.group(1)
+            sample_time = datetime(
+                year   = int(datetimestr[0:4]),
+                month  = int(datetimestr[5:7]),
+                day    = int(datetimestr[8:10]),
+                hour   = int(datetimestr[11:13]),
+                minute = int(datetimestr[14:16]),
+                second = int(datetimestr[17:19]),
+                microsecond = int(datetimestr[20:26])
+            )
             if prev_time is not None:
-                if sample_time - prev_time > sample_rate * cycle_usec:
-                    missing = (sample_time - prev_time) // sample_rate - 1
-                    print(f"Line #{input_lines}: missing {missing} measurements ({missing / sample_rate :.3f}s) at " +
+                if sample_time - prev_time > second:
+                    missing = int((sample_time - prev_time) / timedelta(microseconds=cycle_usec)) - 1
+                    print(f"Line #{input_lines}: missing {missing} measurements" +
+                          f" ({missing * cycle_usec / 1_000_000 :.3f}s) at " +
                           prev_time.strftime(STRFTIME2),
                           file=sys.stderr)
-                    missing_time += timedelta(microseconds=missing * sample_rate)
+                    missing_time += timedelta(microseconds=missing * cycle_usec)
             prev_time = sample_time
             if start_time is None: start_time = sample_time
 
@@ -107,15 +118,15 @@ print(f"Input {input_lines} lines, output {output_lines} lines" +
 if args.analyze:
     span_time = sample_time - start_time
     recorded_time = span_time - missing_time
-    recorded_cycles = (recorded_time.seconds * 1_000_000 + recorded_time.microseconds) / sample_rate
-    processing_speed = recorded_cycles * sample_rate / microseconds
+    recorded_cycles = (recorded_time.seconds * 1_000_000 + recorded_time.microseconds) / cycle_usec
+    processing_speed = recorded_cycles * cycle_usec / microseconds
     print(f"Speed {processing_speed :.1f}x real-time" +
           f" ({3600 / processing_speed :.1f}s/hour)",
           file=sys.stderr)
     print(f"Time span {start_time.strftime(STRFTIME)} to {sample_time.strftime(STRFTIME)}" +
           f" with {missing_time.seconds}s ({100.0 * missing_time.seconds / span_time.seconds:.3f}%) missing" +
           f" = {recorded_time.seconds}s recorded" +
-          f" -> {sample_rate * output_lines / recorded_cycles :.2f}Hz",
+          f" -> {cycle_usec * output_lines / recorded_cycles :.2f}Hz",
           file=sys.stderr)
 
 exit(error_lines)
