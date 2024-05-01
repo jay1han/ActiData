@@ -30,27 +30,26 @@ input = sys.stdin
 output = sys.stdout
 
 if args.input is None:
-    print("Input from stdin", file=sys.stderr)
+    print("Input : stdin", file=sys.stderr)
 else:
-    print(f"Input from {args.input}", file=sys.stderr)
+    print(f"Input : {args.input}", file=sys.stderr)
     input = open(args.input, "r")
-    if args.check:
-        output = None
-    elif args.rewrite:
+    if args.rewrite:
         tempfile = args.input + '.1'
         output = open(tempfile, "w")
 
 if args.output is None:
-    print("Output to stdout", file=sys.stderr)
+    print("Output: stdout", file=sys.stderr)
 else:
-    print(f"Output to {args.output}", file=sys.stderr)
+    print(f"Output: {args.output}", file=sys.stderr)
     if args.check or args.rewrite:
         print("Contradictory options", file=sys.stderr)
         exit(1)
     output = open(args.output, "w")
 
-input_size = 0
-printed_size = 0
+input_lines = 0
+output_lines = 0
+error_lines = 0
 stopwatch = datetime.now()
 prev_time = None
 start_time = None
@@ -59,26 +58,27 @@ missing_time = timedelta(seconds=0)
 actidata = re.compile(f"([0-9/]+,[0-9:]+.[0-9]+)(,[-+0-9.]+){{{expected_size}}}")
 for line in input:
     line = line.strip()
-    input_size += 1
+    input_lines += 1
     if line == "":
-        print(f"Empty line #{input_size}", file=sys.stderr)
+        print(f"Empty line #{input_lines}", file=sys.stderr)
         continue
     matchdata = actidata.match(line)
     if matchdata is None:
         print(f"Regex doesn't match:\n{line}", file=sys.stderr)
+        error_lines += 1
         continue
     else:
         # datalist = map(float, data_str)
         if not args.check:
             print(line, file=output)
-        printed_size += 1
+        output_lines += 1
 
         if args.analyze:
             sample_time = datetime.strptime(matchdata.group(1), STRPTIME)
             if prev_time is not None:
                 if sample_time - prev_time > sample_rate * cycle_usec:
                     missing = (sample_time - prev_time) // sample_rate - 1
-                    print(f"Line #{input_size}: missing {missing} measurements ({missing / cycle_usec :.3f}s) at " +
+                    print(f"Line #{input_lines}: missing {missing} measurements ({missing / cycle_usec :.3f}s) at " +
                           prev_time.strftime(STRFTIME2),
                           file=sys.stderr)
                     missing_time += timedelta(microseconds=missing * cycle_usec)
@@ -91,12 +91,13 @@ if output != sys.stdout:
     output.close()
 if args.rewrite:
     os.replace(tempfile, args.input)
+print(f"Found {error_lines} errors", file=sys.stderr)
 
 elapsed = datetime.now() - stopwatch
 microseconds = elapsed.seconds * 1_000_000 + elapsed.microseconds
-print(f"Input {input_size} lines, output {printed_size} lines" +
+print(f"Input {input_lines} lines, output {output_lines} lines" +
       f" processed in {elapsed.seconds}s" +
-      f" = {1_000 * input_size / microseconds :.0f}klines/s",
+      f" = {1_000 * input_lines / microseconds :.0f}klines/s",
       file=sys.stderr)
 
 if args.analyze:
@@ -110,5 +111,7 @@ if args.analyze:
     print(f"Time span {start_time.strftime(STRFTIME)} to {sample_time.strftime(STRFTIME)}" +
           f" with {missing_time.seconds}s ({100.0 * missing_time.seconds / span_time.seconds:.3f}%) missing" +
           f" = {recorded_time.seconds}s recorded" +
-          f" -> {cycle_usec * printed_size / recorded_cycles :.2f}Hz",
+          f" -> {cycle_usec * output_lines / recorded_cycles :.2f}Hz",
           file=sys.stderr)
+
+exit(error_lines)
